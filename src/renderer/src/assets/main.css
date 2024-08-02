@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  background-color: transparent !important;
+}
+
+#root {
+  background-color: transparent !important;
+}

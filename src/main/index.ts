@@ -1,14 +1,14 @@
-import { app, shell, BrowserWindow, globalShortcut, screen } from 'electron'
+import { app, shell, BrowserWindow, globalShortcut, screen, Tray, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
 let mainWindow;
+let tray;
 
 function createWindow(): void {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
-  // Create the browser window.
   mainWindow = new BrowserWindow({
     roundedCorners: true,
     width: 800,
@@ -33,7 +33,6 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // Center the window
   mainWindow.setPosition(Math.floor(width / 2 - 400), Math.floor(height / 2 - 300));
 
   // Close on clicking outside
@@ -41,14 +40,29 @@ function createWindow(): void {
     mainWindow.hide();
   });
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
+
+function createTray() {
+  tray = new Tray(icon);
+  tray.setToolTip('Click to show/hide the app');
+  
+  tray.on('click', toggleWindow);
+}
+
+function toggleWindow() {
+  if (mainWindow.isVisible()) {
+    mainWindow.hide();
+  } else {
+    mainWindow.show();
+    mainWindow.focus();
+  }
+}
+
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
@@ -61,8 +75,8 @@ app.whenReady().then(() => {
   // ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
+  createTray()
 
-  // Register global shortcut
   const ret = globalShortcut.register('Alt+G', () => {
     console.log('Shortcut triggered');
     if (mainWindow.isVisible()) {
@@ -83,9 +97,7 @@ app.whenReady().then(() => {
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// Quit when all windows are closed, except on macOS.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
@@ -93,9 +105,5 @@ app.on('window-all-closed', () => {
 })
 
 app.on('will-quit', () => {
-  // Unregister the shortcut when the app is about to quit
   globalShortcut.unregisterAll();
 });
-
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
