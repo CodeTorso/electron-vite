@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow, globalShortcut, screen, Tray, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+import icon from '../../resources/xxxTemplate.png?asset'
 
 let mainWindow;
 let tray;
@@ -15,16 +15,15 @@ function createWindow(): void {
     height: 600,
     show: false,
     autoHideMenuBar: true,
+    skipTaskbar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     },
-    // Common options
     roundedCorners: true,
     transparent: true,
     frame: false,
-    // macOS specific options
     ...(process.platform === 'darwin'
       ? {
           vibrancy: 'under-window',
@@ -47,7 +46,6 @@ function createWindow(): void {
 
   mainWindow.setPosition(Math.floor(width / 2 - 400), Math.floor(height / 2 - 300))
 
-  // Close on clicking outside
   mainWindow.on('blur', () => {
     mainWindow!.hide()
   })
@@ -83,9 +81,6 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  // ipcMain.on('ping', () => console.log('pong'))
-
   createWindow()
   createTray()
 
@@ -109,7 +104,6 @@ app.whenReady().then(() => {
   })
 })
 
-// Quit when all windows are closed, except on macOS.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
