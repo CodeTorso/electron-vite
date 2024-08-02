@@ -6,26 +6,38 @@ import icon from '../../resources/icon.png?asset'
 let mainWindow;
 let tray;
 
+
 function createWindow(): void {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize
 
   mainWindow = new BrowserWindow({
-    roundedCorners: true,
     width: 800,
     height: 600,
     show: false,
     autoHideMenuBar: true,
-    transparent: true,
-    frame: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
-    }
+    },
+    // Common options
+    roundedCorners: true,
+    transparent: true,
+    frame: false,
+    // macOS specific options
+    ...(process.platform === 'darwin'
+      ? {
+          vibrancy: 'under-window',
+          visualEffectState: 'active',
+          backgroundColor: '#00ffffff',
+          titleBarStyle: 'hidden',
+          trafficLightPosition: { x: 10, y: 10 }
+        }
+      : {})
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow!.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -33,12 +45,12 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  mainWindow.setPosition(Math.floor(width / 2 - 400), Math.floor(height / 2 - 300));
+  mainWindow.setPosition(Math.floor(width / 2 - 400), Math.floor(height / 2 - 300))
 
   // Close on clicking outside
   mainWindow.on('blur', () => {
-    mainWindow.hide();
-  });
+    mainWindow!.hide()
+  })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
