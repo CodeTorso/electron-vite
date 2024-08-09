@@ -1,11 +1,10 @@
-import { app, shell, BrowserWindow, globalShortcut, screen, Tray, Menu } from 'electron'
+import { app, shell, BrowserWindow, globalShortcut, screen, Tray } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/xxxTemplate.png?asset'
 
 let mainWindow;
 let tray;
-
 
 function createWindow(): void {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize
@@ -35,8 +34,11 @@ function createWindow(): void {
       : {})
   })
 
+  mainWindow.setSkipTaskbar(true)
+
   mainWindow.on('ready-to-show', () => {
-    mainWindow!.show()
+    mainWindow.show()
+    mainWindow.setSkipTaskbar(true)
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -46,8 +48,12 @@ function createWindow(): void {
 
   mainWindow.setPosition(Math.floor(width / 2 - 400), Math.floor(height / 2 - 300))
 
-  mainWindow.on('blur', () => {
-    mainWindow!.hide()
+  mainWindow.on('show', () => {
+    mainWindow.setSkipTaskbar(true)
+  })
+
+  mainWindow.on('restore', () => {
+    mainWindow.setSkipTaskbar(true)
   })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -69,16 +75,16 @@ function toggleWindow() {
     mainWindow.hide();
   } else {
     mainWindow.show();
-    mainWindow.focus();
+    mainWindow.setSkipTaskbar(true);
   }
 }
-
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
+    window.setSkipTaskbar(true)
   })
 
   createWindow()
@@ -86,11 +92,7 @@ app.whenReady().then(() => {
 
   const ret = globalShortcut.register('Alt+G', () => {
     console.log('Shortcut triggered');
-    if (mainWindow.isVisible()) {
-      mainWindow.hide();
-    } else {
-      mainWindow.show();
-    }
+    toggleWindow();
   });
 
   if (!ret) {
