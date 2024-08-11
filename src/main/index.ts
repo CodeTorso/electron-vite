@@ -34,11 +34,15 @@ function createWindow(): void {
       : {})
   })
 
-  mainWindow.setSkipTaskbar(true)
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
-    mainWindow.setSkipTaskbar(true)
+  })
+
+  mainWindow.on('blur', () => {
+    if (!mainWindow.webContents.isDevToolsOpened()) {
+      mainWindow.hide()
+    }
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -48,13 +52,7 @@ function createWindow(): void {
 
   mainWindow.setPosition(Math.floor(width / 2 - 400), Math.floor(height / 2 - 300))
 
-  mainWindow.on('show', () => {
-    mainWindow.setSkipTaskbar(true)
-  })
 
-  mainWindow.on('restore', () => {
-    mainWindow.setSkipTaskbar(true)
-  })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
@@ -75,7 +73,6 @@ function toggleWindow() {
     mainWindow.hide();
   } else {
     mainWindow.show();
-    mainWindow.setSkipTaskbar(true);
   }
 }
 
@@ -84,7 +81,6 @@ app.whenReady().then(() => {
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
-    window.setSkipTaskbar(true)
   })
 
   createWindow()
